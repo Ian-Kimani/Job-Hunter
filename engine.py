@@ -1,6 +1,6 @@
 import time
 from extractors import remoteok, weworkremotely, brightermonday, linkedin, myjobmag
-from db_manager import is_job_seen, add_job
+from db_manager import is_job_seen, add_job, init_db
 from telegram_bot import send_telegram_message, format_job_message
 
 # Keywords to trigger an alert
@@ -11,6 +11,10 @@ TARGET_KEYWORDS = [
     "internship", "attachment", "junior",
     "kenya", "nairobi", "remote", "contract"
 ]
+
+def run_scraper():
+    init_db()          
+    print("Starting Job Hunt Engine...")
 
 def contains_keywords(text: str) -> bool:
     """Checks if a string contains any of our target keywords."""
