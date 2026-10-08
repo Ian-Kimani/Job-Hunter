@@ -1,0 +1,46 @@
+name: Job Hunter
+
+on:
+  schedule:
+    - cron: '0 * * * *'  
+  workflow_dispatch: # Allows manual run from the Actions tab
+
+jobs:
+  scrape-and-alert:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 python-dotenv feedparser
+
+    - name: Restore jobs database from cache
+      id: cache-db
+      uses: actions/cache@v4
+      with:
+        path: jobs.db
+        key: jobs-db-${{ github.run_number }}
+        restore-keys: |
+          jobs-db-
+
+    - name: Initialize database (if needed)
+      run: |
+        python -c "from db_manager import init_db; init_db()"
+
+    - name: Run Job Hunter
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: python engine.py
+
+    # The cache is automatically saved at the end of the job
+    # because we used a unique key (run_number)
